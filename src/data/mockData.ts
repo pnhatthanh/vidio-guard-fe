@@ -2,9 +2,9 @@ import type { Video, ProcessingJob, SystemHealth, PipelineStats, User } from '..
 
 export const currentUser: User = {
   id: 'u1',
-  name: 'Alex Sterling',
-  role: 'Head Curator',
-  initials: 'AS',
+  name: 'Nguyễn Văn A',
+  role: 'Kiểm duyệt viên',
+  initials: 'NA',
 };
 
 export const processingQueue: ProcessingJob[] = [
@@ -187,8 +187,8 @@ export const analyticsVideo: Video = {
     },
     {
       id: 'av2',
-      type: 'audio',
-      description: 'Aggressive verbal exchange identified in audio track.',
+      type: 'toxic',
+      description: 'Phát hiện ngôn từ xúc phạm và đe dọa trong âm thanh video.',
       confidenceScore: 78.5,
       timestamp: 175,
       severity: 'warning',
@@ -203,35 +203,6 @@ export const analyticsVideo: Video = {
     },
   ],
   safetyScore: 18,
-};
-
-export const analysisDetailVideo: Video = {
-  id: 'analysis-detail',
-  filename: 'Video_7729_Global.mp4',
-  size: '890 MB',
-  resolution: '4K',
-  status: 'completed',
-  processedAt: 'Oct 24, 2023 • 16:05:11',
-  duration: 720,
-  violations: [
-    {
-      id: 'ad1',
-      type: 'violence',
-      description: 'Visual match with high-confidence action pattern.',
-      confidenceScore: 91,
-      timestamp: 240,
-      severity: 'critical',
-    },
-    {
-      id: 'ad2',
-      type: 'prohibited_symbolism',
-      description: 'Static object detection flagged as sensitive material.',
-      confidenceScore: 84,
-      timestamp: 360,
-      severity: 'critical',
-    },
-  ],
-  safetyScore: 22,
 };
 
 export const systemHealth: SystemHealth = {

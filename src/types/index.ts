@@ -1,6 +1,7 @@
 // TypeScript interfaces for Vigilant Lens AI Platform
 
 export type VideoStatus =
+  | 'uploaded'
   | 'processing'
   | 'completed'
   | 'queued'
@@ -9,13 +10,7 @@ export type VideoStatus =
   | 'verified'
   | 'error';
 
-export type ViolationType =
-  | 'violence'
-  | 'explicit'
-  | 'hate_speech'
-  | 'deepfake'
-  | 'prohibited_symbolism'
-  | 'audio';
+export type ViolationType = 'violence' | 'explicit' | 'toxic';
 
 export type SeverityLevel = 'critical' | 'warning' | 'safe' | 'info';
 
@@ -24,7 +19,8 @@ export interface Violation {
   type: ViolationType;
   description: string;
   confidenceScore: number; // 0-100
-  timestamp?: number; // seconds into video
+  timestamp?: number; // start time (seconds)
+  endTimestamp?: number; // end time (seconds)
   severity: SeverityLevel;
 }
 
@@ -35,11 +31,27 @@ export interface Video {
   resolution: string;
   status: VideoStatus;
   processedAt?: string;
-  duration?: number; // seconds
+  uploadedAt?: string;
+  violated?: boolean;
+  duration?: number;
   violations: Violation[];
-  safetyScore: number; // 0-100 (higher = safer)
+  safetyScore: number;
   thumbnailUrl?: string;
+  videoUrl?: string;
+  transcript?: string;
+  verdictLabel?: string;
+  progressPercent?: number;
+  stage?: string;
+  violationCount?: number;
 }
+
+export type PipelineJob = {
+  videoId: string;
+  filename: string;
+  status: string;
+  stage: string;
+  progress: number;
+};
 
 export interface ProcessingJob {
   id: string;

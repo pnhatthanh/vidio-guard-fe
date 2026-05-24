@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -10,112 +9,50 @@ import {
   Avatar,
   Typography,
   Divider,
-  Tooltip,
 } from '@mui/material';
-import {
-  Dashboard,
-  CloudUpload,
-  VideoLibrary,
-  Insights,
-  Settings,
-  ContactSupport,
-  Logout,
-} from '@mui/icons-material';
+import { CloudUpload, VideoLibrary, Logout } from '@mui/icons-material';
 import { colors } from '../../theme/colors';
-import { currentUser } from '../../data/mockData';
+import { useAuth } from '../../features/auth/AuthProvider';
+import { BrandLogo } from '../brand/BrandLogo';
 
-const SIDEBAR_WIDTH = 220;
+function getInitials(fullName: string) {
+  return (
+    fullName
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '?'
+  );
+}
 
-interface NavItem {
+export const SIDEBAR_WIDTH = 240;
+
+type NavItem = {
   label: string;
   icon: React.ReactNode;
   path: string;
-}
+};
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { label: 'Upload', icon: <CloudUpload />, path: '/upload' },
-  { label: 'Library', icon: <VideoLibrary />, path: '/library' },
-  { label: 'Analytics', icon: <Insights />, path: '/analytics/analytics-main' },
-  { label: 'Settings', icon: <Settings />, path: '/settings' },
+  { label: 'Tải video', icon: <CloudUpload />, path: '/upload' },
+  { label: 'Thư viện', icon: <VideoLibrary />, path: '/library' },
 ];
 
-const bottomNavItems: NavItem[] = [
-  { label: 'Support', icon: <ContactSupport />, path: '/support' },
-];
-
-const Sidebar: React.FC = () => {
+export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const { user, logout } = useAuth();
 
-  const isActive = (path: string) => location.pathname.startsWith(path.split('/')[1] === '' ? path : `/${path.split('/')[1]}`);
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
-  const NavButton: React.FC<{ item: NavItem }> = ({ item }) => {
-    const active = isActive(item.path);
-    const hovered = hoveredPath === item.path;
-
-    return (
-      <ListItem disablePadding sx={{ mb: 0.5 }}>
-        <ListItemButton
-          selected={active}
-          onClick={() => navigate(item.path)}
-          onMouseEnter={() => setHoveredPath(item.path)}
-          onMouseLeave={() => setHoveredPath(null)}
-          sx={{
-            borderRadius: '8px',
-            py: 1,
-            px: 1.5,
-            transition: 'all 0.2s ease',
-            position: 'relative',
-            overflow: 'hidden',
-            '&.Mui-selected': {
-              backgroundColor: `${colors.primaryContainer}1a`,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                left: 0,
-                top: '20%',
-                bottom: '20%',
-                width: 3,
-                backgroundColor: colors.primary,
-                borderRadius: '0 2px 2px 0',
-              },
-            },
-            '&:hover': {
-              backgroundColor: colors.surfaceContainerHigh,
-            },
-            ...(hovered && !active && {
-              backgroundColor: colors.surfaceContainerHigh,
-            }),
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 36,
-              color: active ? colors.primary : colors.onSurfaceVariant,
-              transition: 'color 0.2s',
-            }}
-          >
-            {item.icon}
-          </ListItemIcon>
-          <ListItemText
-            primary={item.label}
-            slotProps={{
-              primary: {
-                sx: {
-                  fontSize: '0.875rem',
-                  fontFamily: 'Inter',
-                  fontWeight: active ? 600 : 400,
-                  color: active ? colors.onSurface : colors.onSurfaceVariant,
-                  transition: 'color 0.2s, font-weight 0.2s',
-                }
-              }
-            }}
-          />
-        </ListItemButton>
-      </ListItem>
-    );
+  const isActive = (path: string) => {
+    const base = path.split('/').slice(0, 2).join('/');
+    return location.pathname.startsWith(base);
   };
 
   return (
@@ -123,7 +60,6 @@ const Sidebar: React.FC = () => {
       component="nav"
       sx={{
         width: SIDEBAR_WIDTH,
-        flexShrink: 0,
         height: '100vh',
         position: 'fixed',
         top: 0,
@@ -137,150 +73,139 @@ const Sidebar: React.FC = () => {
         px: 1.5,
       }}
     >
-      {/* Logo */}
-      <Box sx={{ px: 1, mb: 3 }}>
-        <Box className="flex items-center gap-2">
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: 1.5,
-              background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <VideoLibrary sx={{ fontSize: 18, color: colors.onPrimary }} />
-          </Box>
-          <Box>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                fontFamily: 'Manrope',
-                fontWeight: 700,
-                color: colors.onSurface,
-                lineHeight: 1.2,
-                fontSize: '0.875rem',
-              }}
-            >
-              Curator AI
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ color: colors.onSurfaceVariant, fontSize: '0.625rem' }}
-            >
-              Luminous Authority
-            </Typography>
-          </Box>
-        </Box>
+      <Box sx={{ px: 0.5, mb: 3 }}>
+        <button type="button" onClick={() => navigate('/upload')} className="cursor-pointer">
+          <BrandLogo size="sm" />
+        </button>
       </Box>
 
-      {/* Main Nav */}
       <List disablePadding sx={{ flex: 1 }}>
-        {navItems.map((item) => (
-          <NavButton key={item.path} item={item} />
-        ))}
+        {navItems.map((item) => {
+          const active = isActive(item.path);
+          return (
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                selected={active}
+                onClick={() => navigate(item.path)}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.25,
+                  '&.Mui-selected': {
+                    backgroundColor: `${colors.primaryContainer}18`,
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: 0,
+                      top: '20%',
+                      bottom: '20%',
+                      width: 3,
+                      backgroundColor: colors.primary,
+                      borderRadius: '0 2px 2px 0',
+                    },
+                  },
+                  '&:hover': { backgroundColor: colors.surfaceContainerHigh },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 36,
+                    color: active ? colors.primary : colors.onSurfaceVariant,
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{
+                    primary: {
+                      sx: {
+                        fontSize: '0.875rem',
+                        fontWeight: active ? 600 : 400,
+                        color: active ? colors.onSurface : colors.onSurfaceVariant,
+                      },
+                    },
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
 
-      <Divider sx={{ my: 1 }} />
+      <Divider sx={{ my: 1, opacity: 0.3 }} />
 
-      {/* Bottom Nav */}
-      <List disablePadding>
-        {bottomNavItems.map((item) => (
-          <NavButton key={item.path} item={item} />
-        ))}
-        <ListItem disablePadding sx={{ mt: 0.5 }}>
-          <ListItemButton
-            onClick={() => navigate('/login')}
-            sx={{
-              borderRadius: '8px',
-              py: 1,
-              px: 1.5,
-              '&:hover': { backgroundColor: `${colors.errorContainer}33` },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 36, color: colors.error }}>
-              <Logout />
-            </ListItemIcon>
-            <ListItemText
-              primary="Logout"
-              slotProps={{
-                primary: {
-                  sx: {
-                    fontSize: '0.875rem',
-                    color: colors.error,
-                  }
-                }
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-      </List>
+      <ListItem disablePadding>
+        <ListItemButton
+          onClick={() => void handleLogout()}
+          sx={{
+            borderRadius: 2,
+            '&:hover': { backgroundColor: `${colors.errorContainer}22` },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 36, color: colors.error }}>
+            <Logout />
+          </ListItemIcon>
+          <ListItemText
+            primary="Đăng xuất"
+            slotProps={{ primary: { sx: { fontSize: '0.875rem', color: colors.error } } }}
+          />
+        </ListItemButton>
+      </ListItem>
 
-      <Divider sx={{ my: 1 }} />
-
-      {/* User Profile */}
       <Box
+        component="button"
+        type="button"
+        onClick={() => navigate('/profile')}
         sx={{
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
+          mt: 1.5,
           px: 1,
-          py: 0.5,
+          py: 1,
           borderRadius: 2,
+          backgroundColor: colors.surfaceContainer,
+          border: 'none',
           cursor: 'pointer',
-          transition: 'background-color 0.2s',
+          width: '100%',
+          textAlign: 'left',
           '&:hover': { backgroundColor: colors.surfaceContainerHigh },
         }}
       >
-        <Tooltip title={currentUser.role}>
-          <Avatar
-            sx={{
-              width: 32,
-              height: 32,
-              background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
-              color: colors.onPrimary,
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              fontFamily: 'Manrope',
-              flexShrink: 0,
-            }}
-          >
-            {currentUser.initials}
-          </Avatar>
-        </Tooltip>
+        <Avatar
+          sx={{
+            width: 36,
+            height: 36,
+            background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            fontFamily: 'Manrope',
+          }}
+        >
+          {user ? getInitials(user.full_name) : '?'}
+        </Avatar>
         <Box className="min-w-0">
           <Typography
             variant="caption"
-            sx={{
-              color: colors.onSurface,
-              fontWeight: 600,
-              fontFamily: 'Manrope',
-              display: 'block',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
+            sx={{ color: colors.onSurface, fontWeight: 600, display: 'block' }}
           >
-            {currentUser.name}
+            {user?.full_name ?? '—'}
           </Typography>
           <Typography
             variant="caption"
             sx={{
               color: colors.onSurfaceVariant,
-              fontSize: '0.625rem',
+              fontSize: '0.65rem',
               display: 'block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
-            {currentUser.role}
+            {user?.email ?? ''}
           </Typography>
         </Box>
       </Box>
     </Box>
   );
-};
-
-export { SIDEBAR_WIDTH };
-export default Sidebar;
+}

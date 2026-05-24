@@ -1,14 +1,6 @@
 import React from 'react';
 import { Box, Typography, Divider } from '@mui/material';
-import {
-  SportsKabaddi,
-  NoAdultContent,
-  RecordVoiceOver,
-  Psychology,
-  Flag,
-  VolumeOff,
-  Warning,
-} from '@mui/icons-material';
+import { SportsKabaddi, NoAdultContent, RecordVoiceOver, Warning } from '@mui/icons-material';
 import { colors } from '../../theme/colors';
 import type { Violation } from '../../types';
 import ConfidenceBar from './ConfidenceBar';
@@ -21,10 +13,7 @@ interface ViolationItemProps {
 const violationIconMap: Record<string, React.ReactNode> = {
   violence: <SportsKabaddi sx={{ fontSize: 18 }} />,
   explicit: <NoAdultContent sx={{ fontSize: 18 }} />,
-  audio: <RecordVoiceOver sx={{ fontSize: 18 }} />,
-  deepfake: <Psychology sx={{ fontSize: 18 }} />,
-  hate_speech: <Flag sx={{ fontSize: 18 }} />,
-  prohibited_symbolism: <VolumeOff sx={{ fontSize: 18 }} />,
+  toxic: <RecordVoiceOver sx={{ fontSize: 18 }} />,
 };
 
 const severityColor: Record<string, string> = {
@@ -35,12 +24,9 @@ const severityColor: Record<string, string> = {
 };
 
 const violationLabel: Record<string, string> = {
-  violence: 'Physical Violence',
-  explicit: 'Explicit Content',
-  audio: 'Audio Violation',
-  deepfake: 'Deepfake Detected',
-  hate_speech: 'Hate Speech',
-  prohibited_symbolism: 'Prohibited Symbolism',
+  violence: 'Bạo lực',
+  explicit: 'Nội dung nhạy cảm',
+  toxic: 'Ngôn từ toxic',
 };
 
 const ViolationItem: React.FC<ViolationItemProps> = ({
@@ -101,11 +87,7 @@ const ViolationItem: React.FC<ViolationItemProps> = ({
             >
               {violation.description}
             </Typography>
-            <ConfidenceBar
-              value={violation.confidenceScore}
-              label="Confidence Score"
-              segmented
-            />
+            <ConfidenceBar value={violation.confidenceScore} label="Độ tin cậy" segmented />
           </Box>
         </Box>
       </Box>

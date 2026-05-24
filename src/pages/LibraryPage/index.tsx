@@ -1,145 +1,208 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, InputAdornment, Pagination } from '@mui/material';
-import { Search, FilterList, KeyboardArrowDown } from '@mui/icons-material';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  Box,
+  Typography,
+  TextField,
+  InputAdornment,
+  Pagination,
+  Chip,
+  ToggleButton,
+  ToggleButtonGroup,
+  CircularProgress,
+} from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import TopBar from '../../components/layout/TopBar';
 import VideoCard from '../../components/common/VideoCard';
-import { videoLibrary } from '../../data/mockData';
+import { videosApi } from '../../api/videos';
+import { mapListItemToVideo } from '../../lib/videoMappers';
+import type { VideoListQuery } from '../../api/types';
+import type { Video } from '../../types';
 import { colors } from '../../theme/colors';
 
-const LibraryPage: React.FC = () => {
+const LIMIT = 12;
+
+export default function LibraryPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
+  const [filter, setFilter] = useState<VideoListQuery['filter']>('all');
+  const [days, setDays] = useState(0);
+  const [page, setPage] = useState(1);
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  const filteredVideos = videoLibrary.filter((video) =>
-    video.filename.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(searchTerm.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  const fetchVideos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await videosApi.list({
+        q: debouncedQ || undefined,
+        status: 'completed',
+        filter: filter ?? 'all',
+        days,
+        sort: 'processed_at',
+        order: 'desc',
+        page,
+        limit: LIMIT,
+      });
+      setVideos(res.items.map(mapListItemToVideo));
+      setTotal(res.total);
+      setTotalPages(res.total_pages);
+    } catch {
+      setVideos([]);
+      setTotal(0);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [debouncedQ, filter, days, page]);
+
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
+
+  const violationCount = videos.filter((v) => (v.violationCount ?? 0) > 0).length;
 
   return (
     <AppShell>
       <TopBar
-        title="The Digital Curator"
-        subtitle="Stewardship of your processed digital assets."
-        action={
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
-              color: colors.onPrimary,
-              fontWeight: 600,
-            }}
-          >
-            Export Logs
-          </Button>
-        }
+        title="Thư viện video"
+        subtitle={`${total} video · ${violationCount} có vi phạm`}
       />
 
-      <Box sx={{ p: 4, maxWidth: 1400, mx: 'auto' }}>
-        {/* Filters and Search */}
-        <Box className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-          <TextField
-            placeholder="Search assets..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            size="small"
-            sx={{
-              width: { xs: '100%', md: 320 },
-              backgroundColor: colors.surfaceContainerLow,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              },
-            }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search sx={{ color: colors.onSurfaceVariant, fontSize: 20 }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-
-          <Box className="flex items-center gap-3 w-full md:w-auto">
-            <Button
-              variant="outlined"
-              startIcon={<FilterList />}
-              endIcon={<KeyboardArrowDown />}
-              sx={{
-                borderColor: colors.outlineVariant,
-                color: colors.onSurface,
-                backgroundColor: colors.surfaceContainerLow,
-                textTransform: 'none',
+      <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1400, mx: 'auto' }}>
+        <Box className="flex flex-col gap-4 mb-6">
+          <Box className="flex flex-col sm:flex-row gap-3">
+            <TextField
+              placeholder="Tìm theo tên file..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
               }}
-            >
-              Status: All
-            </Button>
-            <Button
-              variant="outlined"
-              endIcon={<KeyboardArrowDown />}
-              sx={{
-                borderColor: colors.outlineVariant,
-                color: colors.onSurface,
-                backgroundColor: colors.surfaceContainerLow,
-                textTransform: 'none',
-              }}
-            >
-              Date: Last 7 Days
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Video Grid */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 3,
-            mb: 4,
-          }}
-        >
-          {filteredVideos.map((video) => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              onClick={() => navigate(`/analytics/${video.id}`)}
-            />
-          ))}
-        </Box>
-
-        {/* Pagination & Meta */}
-        {filteredVideos.length > 0 ? (
-          <Box className="flex items-center justify-between py-4 border-t" sx={{ borderColor: `${colors.outlineVariant}33` }}>
-            <Typography variant="caption" sx={{ color: colors.onSurfaceVariant }}>
-              Showing {filteredVideos.length} of 1,244 processed assets
-            </Typography>
-            <Pagination
-              count={24}
-              shape="rounded"
               size="small"
+              fullWidth
               sx={{
-                '& .MuiPaginationItem-root': {
-                  color: colors.onSurfaceVariant,
-                  '&.Mui-selected': {
-                    backgroundColor: `${colors.primaryContainer}33`,
-                    color: colors.primary,
-                  },
+                maxWidth: { sm: 360 },
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  backgroundColor: colors.surfaceContainerLow,
+                },
+              }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ color: colors.onSurfaceVariant, fontSize: 20 }} />
+                    </InputAdornment>
+                  ),
                 },
               }}
             />
+            <Chip label={`${videos.length} / ${total}`} size="small" sx={{ alignSelf: 'center' }} />
           </Box>
+
+          <Box className="flex flex-wrap gap-3 items-center">
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={filter}
+              onChange={(_, v) => {
+                if (v) {
+                  setFilter(v);
+                  setPage(1);
+                }
+              }}
+              sx={{ '& .MuiToggleButton-root': { textTransform: 'none', px: 2 } }}
+            >
+              <ToggleButton value="all">Tất cả</ToggleButton>
+              <ToggleButton value="violated">Có vi phạm</ToggleButton>
+              <ToggleButton value="safe">An toàn</ToggleButton>
+            </ToggleButtonGroup>
+
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={days}
+              onChange={(_, v) => {
+                if (v != null) {
+                  setDays(v);
+                  setPage(1);
+                }
+              }}
+              sx={{ '& .MuiToggleButton-root': { textTransform: 'none', px: 2 } }}
+            >
+              <ToggleButton value={0}>Mọi lúc</ToggleButton>
+              <ToggleButton value={7}>7 ngày</ToggleButton>
+              <ToggleButton value={30}>30 ngày</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Box>
+
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
+            <CircularProgress sx={{ color: colors.primary }} />
+          </Box>
+        ) : videos.length > 0 ? (
+          <>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: 2.5,
+                mb: 4,
+              }}
+            >
+              {videos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video={video}
+                  onClick={() => navigate(`/analytics/${video.id}`)}
+                />
+              ))}
+            </Box>
+
+            <Box
+              className="flex flex-col sm:flex-row items-center justify-between gap-3 py-4"
+              sx={{ borderTop: `1px solid ${colors.outlineVariant}33` }}
+            >
+              <Typography variant="caption" sx={{ color: colors.onSurfaceVariant }}>
+                Trang {page} / {totalPages}
+              </Typography>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_, p) => setPage(p)}
+                shape="rounded"
+                size="small"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    color: colors.onSurfaceVariant,
+                    '&.Mui-selected': {
+                      bgcolor: `${colors.primaryContainer}33`,
+                      color: colors.primary,
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </>
         ) : (
-          <Box sx={{ textAlign: 'center', py: 10 }}>
+          <Box sx={{ textAlign: 'center', py: 12 }}>
             <Typography variant="body1" sx={{ color: colors.onSurfaceVariant }}>
-              No assets found matching your criteria.
+              Không tìm thấy video phù hợp. Hãy upload video mới.
             </Typography>
           </Box>
         )}
       </Box>
     </AppShell>
   );
-};
-
-export default LibraryPage;
+}

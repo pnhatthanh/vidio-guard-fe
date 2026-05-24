@@ -13,7 +13,7 @@ const severityConfig: Record<
   { label: string; sx: object }
 > = {
   critical: {
-    label: 'Critical Violation',
+    label: 'Vi phạm nghiêm trọng',
     sx: {
       backgroundColor: '#93000a',
       color: '#ffdad6',
@@ -22,7 +22,7 @@ const severityConfig: Record<
     },
   },
   warning: {
-    label: 'Warning',
+    label: 'Cảnh báo',
     sx: {
       backgroundColor: '#3a3010',
       color: '#f5c842',
@@ -31,7 +31,7 @@ const severityConfig: Record<
     },
   },
   safe: {
-    label: 'Safe',
+    label: 'An toàn',
     sx: {
       backgroundColor: '#3a4a5f',
       color: '#a9bad3',

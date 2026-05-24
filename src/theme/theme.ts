@@ -60,23 +60,31 @@ const theme = createTheme({
           padding: '8px 20px',
           fontWeight: 600,
         },
-        containedPrimary: {
-          background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
-          color: colors.onPrimary,
-          '&:hover': {
-            background: `linear-gradient(135deg, ${colors.primaryFixed} 0%, ${colors.primaryContainer} 100%)`,
-            boxShadow: '0 4px 16px rgba(0, 82, 255, 0.35)',
-          },
-        },
-        outlinedPrimary: {
-          borderColor: colors.outline,
-          color: colors.primary,
-          '&:hover': {
-            backgroundColor: colors.surfaceBright,
-            borderColor: colors.primary,
-          },
-        },
       },
+      variants: [
+        {
+          props: { variant: 'contained', color: 'primary' },
+          style: {
+            background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
+            color: colors.onPrimary,
+            '&:hover': {
+              background: `linear-gradient(135deg, ${colors.primaryFixed} 0%, ${colors.primaryContainer} 100%)`,
+              boxShadow: '0 4px 16px rgba(0, 82, 255, 0.35)',
+            },
+          },
+        },
+        {
+          props: { variant: 'outlined', color: 'primary' },
+          style: {
+            borderColor: colors.outline,
+            color: colors.primary,
+            '&:hover': {
+              backgroundColor: colors.surfaceBright,
+              borderColor: colors.primary,
+            },
+          },
+        },
+      ],
     },
     MuiCard: {
       styleOverrides: {

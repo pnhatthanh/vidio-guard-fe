@@ -19,6 +19,7 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
       <Sidebar />
       <Box
         component="main"
+        className="app-mesh"
         sx={{
           flex: 1,
           marginLeft: `${SIDEBAR_WIDTH}px`,

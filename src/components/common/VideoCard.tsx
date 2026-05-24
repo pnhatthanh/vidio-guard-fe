@@ -9,7 +9,6 @@ import {
 } from '@mui/material';
 import {
   MoreVert,
-  PlayArrow,
   Warning,
   CheckCircle,
   Archive,
@@ -17,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import { colors } from '../../theme/colors';
 import type { Video } from '../../types';
+import { VideoPoster } from './VideoPoster';
 
 interface VideoCardProps {
   video: Video;
@@ -28,37 +28,42 @@ const statusConfig: Record<
   { label: string; color: string; icon: React.ReactNode }
 > = {
   completed: {
-    label: 'Completed',
+    label: 'Hoàn tất',
     color: colors.secondary,
     icon: <CheckCircle sx={{ fontSize: 14 }} />,
   },
   archived: {
-    label: 'AUTO-ARCHIVED',
+    label: 'Lưu trữ',
     color: colors.onSurfaceVariant,
     icon: <Archive sx={{ fontSize: 14 }} />,
   },
   verified: {
-    label: 'SYSTEM VERIFIED',
-    color: '#4caf7d',
+    label: 'Đã xác minh',
+    color: '#4ade80',
     icon: <VerifiedUser sx={{ fontSize: 14 }} />,
   },
   cleared: {
-    label: 'AUTO-CLEARED',
+    label: 'Đã duyệt',
     color: colors.secondary,
     icon: <CheckCircle sx={{ fontSize: 14 }} />,
   },
   error: {
-    label: 'Error',
+    label: 'Lỗi',
     color: colors.error,
     icon: <Warning sx={{ fontSize: 14 }} />,
   },
   processing: {
-    label: 'Processing',
+    label: 'Đang xử lý',
     color: colors.primary,
     icon: <CircularProgress size={12} />,
   },
+  uploaded: {
+    label: 'Đang tải',
+    color: colors.onSurfaceVariant,
+    icon: <CircularProgress size={12} />,
+  },
   queued: {
-    label: 'Queued',
+    label: 'Hàng đợi',
     color: colors.onSurfaceVariant,
     icon: null,
   },
@@ -73,7 +78,8 @@ const getSafetyColor = (score: number): string => {
 const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
   const statusInfo = statusConfig[video.status] ?? statusConfig.completed;
   const safetyColor = getSafetyColor(video.safetyScore);
-  const hasViolations = video.violations.length > 0;
+  const violationCount = video.violationCount ?? video.violations.length;
+  const hasViolations = violationCount > 0;
 
   return (
     <Box
@@ -95,34 +101,8 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
         },
       }}
     >
-      {/* Thumbnail placeholder */}
-      <Box
-        sx={{
-          height: 120,
-          backgroundColor: colors.surfaceContainerLow,
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(183, 196, 255, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background-color 0.2s',
-            '.group:hover &': {
-              backgroundColor: 'rgba(183, 196, 255, 0.2)',
-            },
-          }}
-        >
-          <PlayArrow sx={{ color: colors.primary, fontSize: 22 }} />
-        </Box>
+      <Box sx={{ position: 'relative' }}>
+        <VideoPoster videoUrl={video.videoUrl} height={120} />
 
         {/* Safety score badge */}
         <Box
@@ -181,7 +161,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
                 variant="caption"
                 sx={{ color: colors.onSurfaceVariant, mt: 0.25, display: 'block' }}
               >
-                Processed: {video.processedAt}
+                {video.processedAt}
               </Typography>
             )}
           </Box>
@@ -242,8 +222,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
               variant="caption"
               sx={{ color: colors.tertiary, fontWeight: 500 }}
             >
-              {video.violations.length} violation
-              {video.violations.length > 1 ? 's' : ''} detected
+              {violationCount} vi phạm
             </Typography>
           </Box>
         )}
