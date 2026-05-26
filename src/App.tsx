@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import UploadPage from './pages/UploadPage';
 import LibraryPage from './pages/LibraryPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import ProfilePage from './pages/ProfilePage';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { GuestRoute } from './features/auth/GuestRoute';
 import './index.css';
@@ -26,6 +27,22 @@ function App() {
           element={
             <GuestRoute>
               <LoginPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <GuestRoute>
+              <ForgotPasswordPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <GuestRoute>
+              <ResetPasswordPage />
             </GuestRoute>
           }
         />
@@ -55,14 +72,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/profile" element={<Navigate to="/upload" replace />} />
         <Route path="/analysis/:id" element={<AnalysisRedirect />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -12,8 +12,8 @@ export function LandingFooter() {
           <div className="space-y-4 sm:col-span-2 lg:col-span-2">
             <BrandLogo />
             <p className="max-w-xs text-sm leading-relaxed text-on-surface-variant">
-              Hệ thống phân tích và kiểm duyệt nội dung video bằng AI — đồ án DATN, an toàn hơn
-              cho internet.
+              Hệ thống phân tích và kiểm duyệt nội dung video bằng AI — giúp nền tảng giữ môi
+              trường an toàn cho cộng đồng.
             </p>
           </div>
 
@@ -40,7 +40,7 @@ export function LandingFooter() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-outline-variant/20 pt-8 sm:flex-row">
           <p className="text-xs text-on-surface-variant">
-            © {year} {BRAND_NAME}. Đồ án tốt nghiệp — AI Video Moderation.
+            © {year} {BRAND_NAME}. Giải pháp kiểm duyệt video thông minh.
           </p>
           <div className="flex gap-4">
             {['public', 'alternate_email', 'code'].map((icon) => (

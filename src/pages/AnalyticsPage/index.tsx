@@ -8,7 +8,18 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { CheckCircle, Block, ArrowBack, InsertDriveFile, Schedule } from '@mui/icons-material';
+import {
+  CheckCircle,
+  Block,
+  ArrowBack,
+  InsertDriveFile,
+  Schedule,
+  Download,
+  DeleteOutlined,
+} from '@mui/icons-material';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { downloadVideoFile, deleteVideo } from '../../lib/videoActions';
+import { getErrorMessage } from '../../api/errors';
 import AppShell from '../../components/layout/AppShell';
 import TopBar from '../../components/layout/TopBar';
 import { VideoPlayer } from '../../features/analytics/components/VideoPlayer';
@@ -24,6 +35,36 @@ export default function AnalyticsPage() {
   const navigate = useNavigate();
   const { video, loading, error } = useVideoDetail(id);
   const [seekToSec, setSeekToSec] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const handleDownload = async () => {
+    if (!video) return;
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      await downloadVideoFile(video.id);
+    } catch (e) {
+      setActionError(getErrorMessage(e));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!video) return;
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      await deleteVideo(video.id);
+      navigate('/library', { replace: true });
+    } catch (e) {
+      setActionError(getErrorMessage(e));
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -59,18 +100,44 @@ export default function AnalyticsPage() {
         title={video.filename}
         subtitle={`Xử lý: ${video.processedAt ?? '—'}`}
         action={
-          <Button
-            size="small"
-            startIcon={<ArrowBack />}
-            onClick={() => navigate('/library')}
-            sx={{ color: colors.onSurfaceVariant, textTransform: 'none' }}
-          >
-            Thư viện
-          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button
+              size="small"
+              startIcon={<Download />}
+              disabled={actionLoading}
+              onClick={() => void handleDownload()}
+              sx={{ color: colors.onSurfaceVariant, textTransform: 'none' }}
+            >
+              Tải xuống
+            </Button>
+            <Button
+              size="small"
+              startIcon={<DeleteOutlined />}
+              disabled={actionLoading}
+              onClick={() => setConfirmDelete(true)}
+              sx={{ color: colors.error, textTransform: 'none' }}
+            >
+              Xóa
+            </Button>
+            <Button
+              size="small"
+              startIcon={<ArrowBack />}
+              onClick={() => navigate('/library')}
+              sx={{ color: colors.onSurfaceVariant, textTransform: 'none' }}
+            >
+              Thư viện
+            </Button>
+          </Box>
         }
       />
 
       <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1280, mx: 'auto' }}>
+        {actionError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setActionError(null)}>
+            {actionError}
+          </Alert>
+        )}
+
         <Box
           sx={{
             display: 'grid',
@@ -151,6 +218,46 @@ export default function AnalyticsPage() {
                   </Typography>
                 </Box>
               ))}
+
+              <Divider sx={{ my: 2, opacity: 0.15 }} />
+
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<Download />}
+                disabled={actionLoading}
+                onClick={() => void handleDownload()}
+                sx={{
+                  mb: 1.25,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1.1,
+                  borderColor: `${colors.primary}55`,
+                  color: colors.primary,
+                }}
+              >
+                Tải file gốc
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<DeleteOutlined />}
+                disabled={actionLoading}
+                onClick={() => setConfirmDelete(true)}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  py: 1.1,
+                  borderColor: `${colors.error}55`,
+                  color: colors.error,
+                  '&:hover': {
+                    borderColor: colors.error,
+                    bgcolor: `${colors.errorContainer}18`,
+                  },
+                }}
+              >
+                Xóa video
+              </Button>
             </Box>
 
             {hasViolations && !isProcessing && (
@@ -223,6 +330,17 @@ export default function AnalyticsPage() {
           </Box>
         </Box>
       </Box>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Xóa video?"
+        message={`"${video.filename}" sẽ bị xóa vĩnh viễn khỏi hệ thống.`}
+        confirmLabel="Xóa"
+        loading={actionLoading}
+        danger
+        onClose={() => !actionLoading && setConfirmDelete(false)}
+        onConfirm={() => void handleDelete()}
+      />
     </AppShell>
   );
 }

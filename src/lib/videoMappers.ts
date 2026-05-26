@@ -81,6 +81,8 @@ export function mapListItemToVideo(item: VideoListItem): Video {
     resolution: '—',
     status: mapApiStatus(item.status, violated),
     uploadedAt: formatDateTime(item.uploaded_at),
+    uploadedAtIso: item.uploaded_at,
+    processedAtIso: item.processed_at ?? undefined,
     processedAt: item.processed_at ? formatDateTime(item.processed_at) : undefined,
     violated,
     duration: undefined,

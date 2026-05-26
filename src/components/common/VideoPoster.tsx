@@ -7,6 +7,8 @@ import { useVideoPoster } from '../../lib/videoPoster';
 type VideoPosterProps = {
   videoUrl?: string;
   height?: number;
+  /** Lấp đầy container cha (cần cha có chiều cao / aspect-ratio) */
+  fill?: boolean;
   showPlayOnHover?: boolean;
 };
 
@@ -19,7 +21,7 @@ function seekToPreviewFrame(video: HTMLVideoElement) {
 }
 
 /** Blob URL — capture JPEG; HTTP presigned — dùng thẻ video (tránh lỗi CORS canvas) */
-function StreamVideoPoster({ videoUrl, height }: { videoUrl: string; height: number }) {
+function StreamVideoPoster({ videoUrl, height, fill }: { videoUrl: string; height: number; fill?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -27,7 +29,7 @@ function StreamVideoPoster({ videoUrl, height }: { videoUrl: string; height: num
   return (
     <Box
       sx={{
-        height,
+        height: fill ? '100%' : height,
         bgcolor: '#000',
         position: 'relative',
         overflow: 'hidden',
@@ -74,7 +76,7 @@ function StreamVideoPoster({ videoUrl, height }: { videoUrl: string; height: num
   );
 }
 
-export function VideoPoster({ videoUrl, height = 120, showPlayOnHover = true }: VideoPosterProps) {
+export function VideoPoster({ videoUrl, height = 120, fill = false, showPlayOnHover = true }: VideoPosterProps) {
   const isBlob = videoUrl?.startsWith('blob:') ?? false;
   const { posterUrl, loading } = useVideoPoster(isBlob ? videoUrl : undefined, {
     width: 400,
@@ -84,7 +86,7 @@ export function VideoPoster({ videoUrl, height = 120, showPlayOnHover = true }: 
   const inner = isBlob && videoUrl ? (
     <Box
       sx={{
-        height,
+        height: fill ? '100%' : height,
         bgcolor: '#000',
         position: 'relative',
         overflow: 'hidden',
@@ -107,11 +109,11 @@ export function VideoPoster({ videoUrl, height = 120, showPlayOnHover = true }: 
       )}
     </Box>
   ) : videoUrl ? (
-    <StreamVideoPoster videoUrl={videoUrl} height={height} />
+    <StreamVideoPoster videoUrl={videoUrl} height={height} fill={fill} />
   ) : (
     <Box
       sx={{
-        height,
+        height: fill ? '100%' : height,
         bgcolor: colors.surfaceContainerLow,
         display: 'flex',
         alignItems: 'center',
@@ -123,7 +125,7 @@ export function VideoPoster({ videoUrl, height = 120, showPlayOnHover = true }: 
   );
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: 'relative', height: fill ? '100%' : undefined }}>
       {inner}
       {showPlayOnHover && videoUrl && (
         <Box

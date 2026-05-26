@@ -11,7 +11,7 @@ export function HeroSection() {
   return (
     <section className="relative pt-28 pb-20 sm:pt-32 sm:pb-28">
       <Container>
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="space-y-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary-container/30 bg-primary-container/10 px-4 py-1.5">
               <span

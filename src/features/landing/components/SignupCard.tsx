@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GradientButton } from './marketing/GradientButton';
+import { AuthDivider } from '../../auth/components/AuthDivider';
+import { GoogleSignInButton } from '../../auth/components/GoogleSignInButton';
 import { useAuth, getErrorMessage } from '../../auth/AuthProvider';
 
 export function SignupCard() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
 
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     full_name: '',
@@ -16,6 +19,21 @@ export function SignupCard() {
     password: '',
     confirm_password: '',
   });
+
+  const authBusy = loading || googleLoading;
+
+  const handleGoogleSuccess = async (idToken: string) => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle(idToken);
+      navigate('/upload', { replace: true });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,11 +144,20 @@ export function SignupCard() {
             variant="primary"
             size="lg"
             className="w-full font-headline"
-            disabled={!agreed || loading}
+            disabled={!agreed || authBusy}
             icon={<span className="material-symbols-outlined text-lg">arrow_forward</span>}
           >
             {loading ? 'Đang đăng ký…' : 'Đăng ký'}
           </GradientButton>
+
+          <AuthDivider label="hoặc" />
+
+          <GoogleSignInButton
+            label="Đăng ký bằng Google"
+            disabled={authBusy}
+            onSuccess={(token) => void handleGoogleSuccess(token)}
+            onError={() => setError('Đăng ký Google thất bại. Vui lòng thử lại.')}
+          />
         </form>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,13 +8,13 @@ import {
   Chip,
   ToggleButton,
   ToggleButtonGroup,
-  CircularProgress,
 } from '@mui/material';
 import { Search } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../components/layout/AppShell';
 import TopBar from '../../components/layout/TopBar';
-import VideoCard from '../../components/common/VideoCard';
+import { LibraryVideoGrid } from '../../features/library/components/LibraryVideoGrid';
+import { LibrarySkeleton } from '../../features/library/components/LibrarySkeleton';
 import { videosApi } from '../../api/videos';
 import { mapListItemToVideo } from '../../lib/videoMappers';
 import type { VideoListQuery } from '../../api/types';
@@ -34,14 +34,17 @@ export default function LibraryPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const silentNextFetchRef = useRef(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(searchTerm.trim()), 400);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  const fetchVideos = useCallback(async () => {
-    setLoading(true);
+  const fetchVideos = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? silentNextFetchRef.current;
+    silentNextFetchRef.current = false;
+    if (!silent) setLoading(true);
     try {
       const res = await videosApi.list({
         q: debouncedQ || undefined,
@@ -57,19 +60,36 @@ export default function LibraryPage() {
       setTotal(res.total);
       setTotalPages(res.total_pages);
     } catch {
-      setVideos([]);
-      setTotal(0);
-      setTotalPages(1);
+      if (!silent) {
+        setVideos([]);
+        setTotal(0);
+        setTotalPages(1);
+      }
     } finally {
       setLoading(false);
     }
   }, [debouncedQ, filter, days, page]);
 
   useEffect(() => {
-    fetchVideos();
+    void fetchVideos();
   }, [fetchVideos]);
 
+  const handleVideoDeleted = useCallback(
+    (videoId: string) => {
+      const remaining = videos.filter((v) => v.id !== videoId);
+      setVideos(remaining);
+      setTotal((t) => Math.max(0, t - 1));
+
+      if (remaining.length === 0 && page > 1) {
+        silentNextFetchRef.current = true;
+        setPage((p) => p - 1);
+      }
+    },
+    [videos, page],
+  );
+
   const violationCount = videos.filter((v) => (v.violationCount ?? 0) > 0).length;
+  const showSkeleton = loading && videos.length === 0;
 
   return (
     <AppShell>
@@ -147,28 +167,15 @@ export default function LibraryPage() {
           </Box>
         </Box>
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
-            <CircularProgress sx={{ color: colors.primary }} />
-          </Box>
+        {showSkeleton ? (
+          <LibrarySkeleton />
         ) : videos.length > 0 ? (
           <>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: 2.5,
-                mb: 4,
-              }}
-            >
-              {videos.map((video) => (
-                <VideoCard
-                  key={video.id}
-                  video={video}
-                  onClick={() => navigate(`/analytics/${video.id}`)}
-                />
-              ))}
-            </Box>
+            <LibraryVideoGrid
+              videos={videos}
+              onOpen={(id) => navigate(`/analytics/${id}`)}
+              onDeleted={handleVideoDeleted}
+            />
 
             <Box
               className="flex flex-col sm:flex-row items-center justify-between gap-3 py-4"

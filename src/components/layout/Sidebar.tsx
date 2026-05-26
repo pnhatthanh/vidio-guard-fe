@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -10,9 +11,10 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
-import { CloudUpload, VideoLibrary, Logout } from '@mui/icons-material';
+import { CloudUpload, VideoLibrary, ExpandMore } from '@mui/icons-material';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../features/auth/AuthProvider';
+import { useProfileDialog } from '../../features/profile/ProfileDialogContext';
 import { BrandLogo } from '../brand/BrandLogo';
 
 function getInitials(fullName: string) {
@@ -43,12 +45,9 @@ const navItems: NavItem[] = [
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login', { replace: true });
-  };
+  const { user } = useAuth();
+  const { openUserMenu } = useProfileDialog();
+  const userButtonRef = useRef<HTMLButtonElement>(null);
 
   const isActive = (path: string) => {
     const base = path.split('/').slice(0, 2).join('/');
@@ -134,60 +133,55 @@ export default function Sidebar() {
 
       <Divider sx={{ my: 1, opacity: 0.3 }} />
 
-      <ListItem disablePadding>
-        <ListItemButton
-          onClick={() => void handleLogout()}
-          sx={{
-            borderRadius: 2,
-            '&:hover': { backgroundColor: `${colors.errorContainer}22` },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 36, color: colors.error }}>
-            <Logout />
-          </ListItemIcon>
-          <ListItemText
-            primary="Đăng xuất"
-            slotProps={{ primary: { sx: { fontSize: '0.875rem', color: colors.error } } }}
-          />
-        </ListItemButton>
-      </ListItem>
-
       <Box
         component="button"
         type="button"
-        onClick={() => navigate('/profile')}
+        ref={userButtonRef}
+        onClick={() => {
+          if (userButtonRef.current) openUserMenu(userButtonRef.current);
+        }}
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
-          mt: 1.5,
-          px: 1,
-          py: 1,
+          gap: 1.25,
+          mt: 0.5,
+          px: 1.25,
+          py: 1.25,
           borderRadius: 2,
           backgroundColor: colors.surfaceContainer,
-          border: 'none',
+          border: `1px solid ${colors.outlineVariant}22`,
           cursor: 'pointer',
           width: '100%',
           textAlign: 'left',
+          transition: 'background-color 0.2s',
           '&:hover': { backgroundColor: colors.surfaceContainerHigh },
         }}
       >
         <Avatar
+          src={user?.avatar_url || undefined}
           sx={{
-            width: 36,
-            height: 36,
+            width: 32,
+            height: 32,
             background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryContainer} 100%)`,
-            fontSize: '0.75rem',
+            fontSize: '0.7rem',
             fontWeight: 700,
             fontFamily: 'Manrope',
           }}
         >
           {user ? getInitials(user.full_name) : '?'}
         </Avatar>
-        <Box className="min-w-0">
+        <Box className="min-w-0" sx={{ flex: 1 }}>
           <Typography
             variant="caption"
-            sx={{ color: colors.onSurface, fontWeight: 600, display: 'block' }}
+            sx={{
+              color: colors.onSurface,
+              fontWeight: 600,
+              display: 'block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontSize: '0.8rem',
+            }}
           >
             {user?.full_name ?? '—'}
           </Typography>
@@ -202,9 +196,10 @@ export default function Sidebar() {
               whiteSpace: 'nowrap',
             }}
           >
-            {user?.email ?? ''}
+            Vigilant Lens
           </Typography>
         </Box>
+        <ExpandMore sx={{ fontSize: 18, color: colors.onSurfaceVariant, flexShrink: 0 }} />
       </Box>
     </Box>
   );

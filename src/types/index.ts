@@ -32,6 +32,8 @@ export interface Video {
   status: VideoStatus;
   processedAt?: string;
   uploadedAt?: string;
+  uploadedAtIso?: string;
+  processedAtIso?: string;
   violated?: boolean;
   duration?: number;
   violations: Violation[];

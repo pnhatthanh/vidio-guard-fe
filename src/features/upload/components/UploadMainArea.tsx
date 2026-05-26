@@ -61,7 +61,6 @@ export function UploadMainArea({ session, onUploadFile }: UploadMainAreaProps) {
         sx={{
           position: 'relative',
           minHeight: needsPreviewHeight ? { xs: 360, md: 480 } : 'auto',
-          pt: needsPreviewHeight ? 0 : { xs: 1, md: 3 },
         }}
       >
         {/* Dropzone — luôn render khi cần crossfade */}

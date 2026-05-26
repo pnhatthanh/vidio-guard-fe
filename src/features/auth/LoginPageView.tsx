@@ -1,21 +1,34 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LandingBackground } from '../landing/components/LandingBackground';
-import { BrandLogo } from '../../components/brand/BrandLogo';
+import { LandingFooter } from '../landing/components/LandingFooter';
 import { GradientButton } from '../landing/components/marketing/GradientButton';
+import { AuthPageHeader } from './components/AuthPageHeader';
+import { AuthDivider } from './components/AuthDivider';
+import { GoogleSignInButton } from './components/GoogleSignInButton';
 import { useAuth, getErrorMessage } from './AuthProvider';
 
 export function LoginPageView() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ email: '', password: '' });
 
-  const registered = (location.state as { registered?: boolean } | null)?.registered;
+  const authState = location.state as { registered?: boolean; passwordReset?: boolean } | null;
+  const registered = authState?.registered;
+  const passwordReset = authState?.passwordReset;
+
+  const authBusy = loading || googleLoading;
+
+  const goAfterAuth = () => {
+    const from = (location.state as { from?: string } | null)?.from ?? '/upload';
+    navigate(from, { replace: true });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +36,7 @@ export function LoginPageView() {
     setLoading(true);
     try {
       await login({ email: form.email.trim(), password: form.password });
-      const from = (location.state as { from?: string } | null)?.from ?? '/upload';
-      navigate(from, { replace: true });
+      goAfterAuth();
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -32,16 +44,29 @@ export function LoginPageView() {
     }
   };
 
-  return (
-    <div className="landing-page relative min-h-screen bg-background font-body text-on-surface">
-      <LandingBackground />
+  const handleGoogleSuccess = async (idToken: string) => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle(idToken);
+      goAfterAuth();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
-      <main className="relative flex min-h-screen items-center justify-center px-6 py-12">
+  return (
+    <div className="landing-page relative flex min-h-screen flex-col bg-background font-body text-on-surface">
+      <LandingBackground />
+      <AuthPageHeader />
+
+      <main className="relative flex flex-1 items-center justify-center px-6 py-10 sm:py-14">
         <div className="w-full max-w-md animate-fade-in">
           <div className="mb-8 flex flex-col items-center text-center">
-            <BrandLogo />
-            <h1 className="mt-6 font-headline text-3xl font-bold text-on-surface">Đăng nhập</h1>
-            <p className="mt-2 text-sm text-on-surface-variant">
+            <h1 className="font-headline text-3xl font-bold text-on-surface sm:text-4xl">Đăng nhập</h1>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-on-surface-variant">
               Truy cập bảng điều khiển kiểm duyệt video AI
             </p>
           </div>
@@ -50,6 +75,12 @@ export function LoginPageView() {
             {registered && (
               <p className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
                 Đăng ký thành công. Vui lòng đăng nhập để tiếp tục.
+              </p>
+            )}
+
+            {passwordReset && (
+              <p className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+                Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới.
               </p>
             )}
 
@@ -103,17 +134,34 @@ export function LoginPageView() {
                     </span>
                   </button>
                 </div>
+                <div className="flex justify-end">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Quên mật khẩu?
+                  </Link>
+                </div>
               </div>
 
               <GradientButton
                 type="submit"
                 size="lg"
                 className="w-full font-headline"
-                disabled={loading}
+                disabled={authBusy}
                 icon={<span className="material-symbols-outlined text-lg">arrow_forward</span>}
               >
                 {loading ? 'Đang đăng nhập…' : 'Đăng nhập'}
               </GradientButton>
+
+              <AuthDivider label="hoặc" />
+
+              <GoogleSignInButton
+                label="Đăng nhập bằng Google"
+                disabled={authBusy}
+                onSuccess={(token) => void handleGoogleSuccess(token)}
+                onError={() => setError('Đăng nhập Google thất bại. Vui lòng thử lại.')}
+              />
             </form>
           </div>
 
@@ -129,6 +177,8 @@ export function LoginPageView() {
           </p>
         </div>
       </main>
+
+      <LandingFooter />
     </div>
   );
 }

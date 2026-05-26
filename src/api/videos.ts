@@ -1,5 +1,11 @@
 import { apiRequest } from './client';
-import type { UploadVideoResponse, VideoListQuery, VideoListResponse, VideoStatusResponse } from './types';
+import type {
+  UploadVideoResponse,
+  VideoDownloadResponse,
+  VideoListQuery,
+  VideoListResponse,
+  VideoStatusResponse,
+} from './types';
 
 function buildQuery(params: VideoListQuery): string {
   const q = new URLSearchParams();
@@ -31,5 +37,13 @@ export const videosApi = {
 
   getStatus(videoId: string) {
     return apiRequest<VideoStatusResponse>(`/videos/${videoId}/status`);
+  },
+
+  getDownloadUrl(videoId: string) {
+    return apiRequest<VideoDownloadResponse>(`/videos/${videoId}/download`);
+  },
+
+  delete(videoId: string) {
+    return apiRequest<void>(`/videos/${videoId}`, { method: 'DELETE' });
   },
 };

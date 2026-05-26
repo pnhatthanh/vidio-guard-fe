@@ -1,33 +1,114 @@
-import { Box, Typography, Chip } from '@mui/material';
-import { CheckCircleOutlined, ErrorOutlined, Movie } from '@mui/icons-material';
+import { Box, Typography, Tooltip } from '@mui/material';
+import { ChevronRight, History } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { colors } from '../../../theme/colors';
+import { formatProcessingWindow } from '../../../lib/format';
+import { VideoPoster } from '../../../components/common/VideoPoster';
 import type { Video } from '../../../types';
 
 type RecentCompletedPanelProps = {
   videos: Video[];
 };
 
-function getStatusMeta(video: Video) {
-  const hasViolation = video.violated ?? (video.violationCount ?? 0) > 0;
-  if (hasViolation) {
-    return {
-      label: 'Vi phạm',
-      chipColor: colors.tertiary,
-      chipBg: `${colors.tertiaryContainer}28`,
-      icon: <ErrorOutlined sx={{ fontSize: 20 }} />,
-      iconColor: colors.tertiary,
-      scoreColor: colors.tertiary,
-    };
+function scoreTheme(score: number, violated: boolean) {
+  if (violated || score < 70) {
+    return { color: colors.tertiary, ring: `${colors.tertiaryContainer}55`, bg: `${colors.tertiaryContainer}18` };
   }
-  return {
-    label: 'An toàn',
-    chipColor: '#4ade80',
-    chipBg: 'rgba(74, 222, 128, 0.12)',
-    icon: <CheckCircleOutlined sx={{ fontSize: 20 }} />,
-    iconColor: '#4ade80',
-    scoreColor: '#4ade80',
-  };
+  if (score >= 80) {
+    return { color: '#4ade80', ring: 'rgba(74, 222, 128, 0.4)', bg: 'rgba(74, 222, 128, 0.1)' };
+  }
+  return { color: '#e8a838', ring: 'rgba(232, 168, 56, 0.35)', bg: 'rgba(232, 168, 56, 0.1)' };
+}
+
+function RecentCompletedRow({ video, onOpen }: { video: Video; onOpen: () => void }) {
+  const violated = video.violated ?? (video.violationCount ?? 0) > 0;
+  const theme = scoreTheme(video.safetyScore, violated);
+  const timeLabel = formatProcessingWindow(video.uploadedAtIso, video.processedAtIso);
+
+  return (
+    <Box
+      onClick={onOpen}
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '88px 1fr auto',
+        gap: 1.5,
+        alignItems: 'center',
+        p: 1.25,
+        borderRadius: 2,
+        cursor: 'pointer',
+        bgcolor: colors.surfaceContainer,
+        border: `1px solid ${colors.outlineVariant}22`,
+        borderLeft: `3px solid ${violated ? colors.tertiaryContainer : 'transparent'}`,
+        transition: 'background-color 0.2s, border-color 0.2s',
+        '&:hover': {
+          bgcolor: colors.surfaceContainerHigh,
+          borderColor: `${colors.primary}44`,
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: 88,
+          height: 52,
+          borderRadius: 1.25,
+          overflow: 'hidden',
+          flexShrink: 0,
+          border: `1px solid ${colors.outlineVariant}33`,
+        }}
+      >
+        <VideoPoster videoUrl={video.videoUrl} height={52} showPlayOnHover={false} />
+      </Box>
+
+      <Box sx={{ minWidth: 0 }}>
+        <Tooltip title={video.filename} placement="top-start">
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 600,
+              color: colors.onSurface,
+              fontFamily: 'Manrope',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              mb: 0.35,
+            }}
+          >
+            {video.filename}
+          </Typography>
+        </Tooltip>
+        <Typography variant="caption" sx={{ color: colors.onSurfaceVariant, display: 'block' }}>
+          {timeLabel}
+        </Typography>
+        <Typography variant="caption" sx={{ color: colors.outline, fontSize: '0.65rem' }}>
+          {video.size}
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexShrink: 0 }}>
+        <Box
+          sx={{
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: theme.bg,
+            border: `2px solid ${theme.ring}`,
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{ fontFamily: 'Manrope', fontWeight: 800, color: theme.color, lineHeight: 1, fontSize: '0.8rem' }}
+          >
+            {video.safetyScore}%
+          </Typography>
+        </Box>
+        <ChevronRight sx={{ fontSize: 18, color: colors.onSurfaceVariant, opacity: 0.6 }} />
+      </Box>
+    </Box>
+  );
 }
 
 export function RecentCompletedPanel({ videos }: RecentCompletedPanelProps) {
@@ -42,133 +123,75 @@ export function RecentCompletedPanel({ videos }: RecentCompletedPanelProps) {
         border: `1px solid ${colors.outlineVariant}22`,
       }}
     >
-      <Box className="flex items-center justify-between" sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" sx={{ fontFamily: 'Manrope', fontWeight: 700, color: colors.onSurface }}>
-          Hoàn tất gần đây
-        </Typography>
+      <Box
+        component="button"
+        type="button"
+        onClick={() => navigate('/library')}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
+          width: '100%',
+          p: 0,
+          border: 'none',
+          bgcolor: 'transparent',
+          cursor: 'pointer',
+          textAlign: 'left',
+          borderRadius: 1,
+          '&:hover .recent-completed-title': { color: colors.primary },
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <History sx={{ fontSize: 18, color: colors.primary }} />
+          <Typography
+            className="recent-completed-title"
+            variant="subtitle2"
+            sx={{
+              fontFamily: 'Manrope',
+              fontWeight: 700,
+              color: colors.onSurface,
+              transition: 'color 0.2s',
+            }}
+          >
+            Hoàn tất gần đây
+          </Typography>
+          <ChevronRight sx={{ fontSize: 16, color: colors.onSurfaceVariant, opacity: 0.7 }} />
+        </Box>
         {videos.length > 0 && (
-          <Typography variant="caption" sx={{ color: colors.onSurfaceVariant, fontWeight: 600 }}>
-            {videos.length} video
+          <Typography
+            variant="caption"
+            sx={{
+              color: colors.onSurfaceVariant,
+              fontWeight: 600,
+              px: 1,
+              py: 0.25,
+              borderRadius: 1,
+              bgcolor: colors.surfaceContainerHigh,
+            }}
+          >
+            {videos.length}
           </Typography>
         )}
       </Box>
 
       {videos.length > 0 ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {videos.map((video) => {
-            const meta = getStatusMeta(video);
-            return (
-              <Box
-                key={video.id}
-                onClick={() => navigate(`/analytics/${video.id}`)}
-                sx={{
-                  display: 'flex',
-                  gap: 1.5,
-                  p: 1.5,
-                  borderRadius: 2,
-                  cursor: 'pointer',
-                  bgcolor: colors.surfaceContainer,
-                  border: `1px solid ${colors.outlineVariant}22`,
-                  transition: 'border-color 0.2s, background-color 0.2s',
-                  '&:hover': {
-                    borderColor: `${colors.primary}44`,
-                    bgcolor: colors.surfaceContainerHigh,
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 1.5,
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: meta.chipBg,
-                    color: meta.iconColor,
-                  }}
-                >
-                  {meta.icon}
-                </Box>
-
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box className="flex items-start justify-between gap-1 mb-0.5">
-                    <Box className="flex items-center gap-1 min-w-0">
-                      <Movie sx={{ fontSize: 14, color: colors.onSurfaceVariant, flexShrink: 0 }} />
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 600,
-                          color: colors.onSurface,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {video.filename}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={meta.label}
-                      size="small"
-                      sx={{
-                        height: 20,
-                        fontSize: '0.65rem',
-                        fontWeight: 700,
-                        flexShrink: 0,
-                        color: meta.chipColor,
-                        bgcolor: meta.chipBg,
-                        border: `1px solid ${meta.chipColor}33`,
-                      }}
-                    />
-                  </Box>
-
-                  <Box className="flex flex-wrap gap-x-2 gap-y-0.5">
-                    {video.uploadedAt && (
-                      <Typography variant="caption" sx={{ color: colors.onSurfaceVariant }}>
-                        <Box component="span" sx={{ color: colors.outline, mr: 0.5 }}>
-                          Bắt đầu:
-                        </Box>
-                        {video.uploadedAt}
-                      </Typography>
-                    )}
-                    {video.processedAt && (
-                      <Typography variant="caption" sx={{ color: colors.onSurfaceVariant }}>
-                        <Box component="span" sx={{ color: colors.outline, mr: 0.5 }}>
-                          Kết thúc:
-                        </Box>
-                        {video.processedAt}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-
-                <Box sx={{ textAlign: 'right', flexShrink: 0, alignSelf: 'center' }}>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: colors.onSurfaceVariant, display: 'block', fontSize: '0.65rem', mb: 0.25 }}
-                  >
-                    An toàn
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ fontFamily: 'Manrope', fontWeight: 800, color: meta.scoreColor, lineHeight: 1 }}
-                  >
-                    {video.safetyScore}%
-                  </Typography>
-                </Box>
-              </Box>
-            );
-          })}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          {videos.map((video) => (
+            <RecentCompletedRow
+              key={video.id}
+              video={video}
+              onOpen={() => navigate(`/analytics/${video.id}`)}
+            />
+          ))}
         </Box>
       ) : (
         <Box
           sx={{
-            py: 3,
+            py: 3.5,
             textAlign: 'center',
             borderRadius: 2,
-            border: `1px dashed ${colors.outlineVariant}55`,
+            border: `1px dashed ${colors.outlineVariant}44`,
             bgcolor: colors.surfaceContainer,
           }}
         >

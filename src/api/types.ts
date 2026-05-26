@@ -27,6 +27,25 @@ export type LoginRequest = {
   password: string;
 };
 
+export type GoogleLoginRequest = {
+  id_token: string;
+};
+
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type MessageResponse = {
+  message: string;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  otp: string;
+  new_password: string;
+  confirm_new_password: string;
+};
+
 export type RefreshRequest = {
   refresh_token: string;
 };
@@ -49,9 +68,17 @@ export type UserProfile = {
   created_at: string;
 };
 
-export type UpdateProfileRequest = {
+export type UpdateProfilePayload = {
   full_name: string;
-  avatar_url?: string | null;
+  avatar?: File;
+  remove_avatar?: boolean;
+};
+
+export type VideoDownloadResponse = {
+  video_id: string;
+  download_url: string;
+  filename: string;
+  expires_in_seconds: number;
 };
 
 export type UpdatePasswordRequest = {

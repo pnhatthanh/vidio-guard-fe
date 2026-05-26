@@ -58,12 +58,12 @@ export function VideoPlayer({ video, showDetectionBox = false, seekToSec }: Vide
     setMuted(el.muted);
   };
 
-  const handleSeekChange = (_: Event, value: number | number[]) => {
+  const handleSeekChange = (_: unknown, value: number | number[]) => {
     setIsSeeking(true);
     setCurrentTime(value as number);
   };
 
-  const handleSeekCommit = (_: Event, value: number | number[]) => {
+  const handleSeekCommit = (_: unknown, value: number | number[]) => {
     const t = value as number;
     if (videoRef.current) videoRef.current.currentTime = t;
     setCurrentTime(t);

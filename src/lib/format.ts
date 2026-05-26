@@ -17,6 +17,28 @@ export function formatDateTime(iso?: string | null): string {
   }
 }
 
+/** Hiển thị gọn cho list (vd. 01:44 · 26/5) */
+export function formatDateTimeShort(iso?: string | null): string {
+  if (!iso) return '';
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: 'numeric',
+      month: 'numeric',
+    }).format(new Date(iso));
+  } catch {
+    return '';
+  }
+}
+
+export function formatProcessingWindow(uploadedAt?: string | null, processedAt?: string | null): string {
+  const start = formatDateTimeShort(uploadedAt);
+  const end = formatDateTimeShort(processedAt);
+  if (start && end) return `${start} → ${end}`;
+  return end || start || '—';
+}
+
 export function formatDuration(sec?: number | null): string {
   if (sec == null || !Number.isFinite(sec)) return '--:--';
   const m = Math.floor(sec / 60);
