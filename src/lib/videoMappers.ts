@@ -1,16 +1,15 @@
 import type { VideoListItem, VideoStatusResponse, ViolationSegment, VerdictDetail } from '../api/types';
 import type { SeverityLevel, Video, VideoStatus, Violation, ViolationType } from '../types';
 import { formatBytes, formatDateTime } from './format';
+import { isViolatedVerdict, normalizeVerdict, verdictLabelVi } from './verdict';
 
 function mapCategoryToViolationType(category: string): ViolationType {
   switch (category) {
     case 'nudity':
-    case 'nsfw':
       return 'explicit';
     case 'violence':
       return 'violence';
     case 'hate_speech':
-    case 'toxic':
     default:
       return 'toxic';
   }
@@ -55,24 +54,16 @@ function segmentToViolation(seg: ViolationSegment, index: number): Violation {
   };
 }
 
-function verdictLabelVi(verdict?: VerdictDetail): string {
-  if (!verdict) return '—';
-  switch (verdict.verdict) {
-    case 'safe':
-      return 'An toàn';
-    case 'warning':
-      return 'Cảnh báo';
-    case 'violation':
-    case 'violence':
-    case 'nsfw':
-      return 'Vi phạm';
-    default:
-      return verdict.verdict;
-  }
+function verdictFromDetail(verdict?: VerdictDetail) {
+  const raw = normalizeVerdict(verdict?.verdict);
+  const violated = verdict?.violated ?? isViolatedVerdict(raw);
+  return { verdict: raw, violated, label: verdictLabelVi(raw) };
 }
 
 export function mapListItemToVideo(item: VideoListItem): Video {
-  const violated = item.violated ?? false;
+  const verdict = normalizeVerdict(item.verdict);
+  const violated = item.violated ?? isViolatedVerdict(verdict);
+
   return {
     id: item.video_id,
     videoUrl: item.video_url,
@@ -85,18 +76,19 @@ export function mapListItemToVideo(item: VideoListItem): Video {
     processedAtIso: item.processed_at ?? undefined,
     processedAt: item.processed_at ? formatDateTime(item.processed_at) : undefined,
     violated,
+    verdict,
     duration: undefined,
     violations: [],
-    violationCount: item.violation_count ?? (violated ? 1 : 0),
+    violationCount: item.violation_count ?? 0,
     safetyScore: riskToSafetyScore(item.risk_score),
     progressPercent: item.progress_percent,
     stage: item.stage,
-    verdictLabel: item.verdict,
+    verdictLabel: verdictLabelVi(verdict),
   };
 }
 
 export function mapStatusToVideo(data: VideoStatusResponse): Video {
-  const violated = data.verdict?.violated ?? false;
+  const { verdict: rawVerdict, violated, label } = verdictFromDetail(data.verdict);
   const segments = data.violation_segments ?? [];
 
   return {
@@ -105,13 +97,19 @@ export function mapStatusToVideo(data: VideoStatusResponse): Video {
     size: '—',
     resolution: '—',
     status: mapApiStatus(data.status, violated),
-    processedAt: formatDateTime(data.processed_at ?? data.uploaded_at),
+    uploadedAt: formatDateTime(data.uploaded_at),
+    uploadedAtIso: data.uploaded_at,
+    processedAtIso: data.processed_at ?? undefined,
+    processedAt: data.processed_at ? formatDateTime(data.processed_at) : undefined,
+    violated,
+    verdict: rawVerdict,
     duration: data.verdict?.video_duration_sec,
     violations: segments.map(segmentToViolation),
+    violationCount: segments.length,
     safetyScore: riskToSafetyScore(data.verdict?.risk_score),
     videoUrl: data.video_url,
     transcript: data.verdict?.transcript,
-    verdictLabel: verdictLabelVi(data.verdict),
+    verdictLabel: label,
     progressPercent: data.progress_percent,
     stage: data.stage,
   };

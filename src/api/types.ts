@@ -88,8 +88,8 @@ export type UpdatePasswordRequest = {
 };
 
 export type VideoApiStatus = 'uploaded' | 'processing' | 'completed' | 'failed';
-export type VerdictLabel = 'safe' | 'warning' | 'violation' | 'nsfw' | 'violence';
-export type SegmentCategory = 'nudity' | 'violence' | 'hate_speech' | 'toxic' | 'nsfw';
+export type VerdictLabel = 'safe' | 'warning' | 'violation';
+export type SegmentCategory = 'nudity' | 'violence' | 'hate_speech';
 export type SegmentSource = 'visual' | 'audio';
 
 export type VideoListQuery = {
@@ -129,6 +129,7 @@ export type VideoListResponse = {
 
 export type UploadVideoResponse = {
   video_id: string;
+  video_url?: string;
   status: VideoApiStatus;
   stage: string;
   progress_percent: number;
@@ -138,12 +139,8 @@ export type VerdictDetail = {
   verdict: VerdictLabel;
   violated: boolean;
   risk_score: number;
-  final_score?: number;
   frame_score?: number;
   audio_score?: number;
-  peak_violence_score?: number;
-  peak_nsfw_score?: number;
-  flagged_frames_count?: number;
   total_frames?: number;
   video_duration_sec?: number;
   hard_rule_triggered?: boolean;

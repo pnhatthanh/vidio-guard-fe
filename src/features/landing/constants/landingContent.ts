@@ -19,8 +19,8 @@ export const NAV_LINKS: NavLink[] = [
 ];
 
 export const HERO_STATS: HeroStat[] = [
-  { value: '99.8%', label: 'Độ chính xác' },
-  { value: '<1s', label: 'Phản hồi AI' },
+  { value: '>95%', label: 'Độ chính xác' },
+  { value: '<2m', label: 'Phản hồi AI' },
   { value: '3', label: 'Loại phát hiện' },
 ];
 

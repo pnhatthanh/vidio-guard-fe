@@ -13,7 +13,7 @@ type VideoPlayerProps = {
   seekToSec?: number | null;
 };
 
-export function VideoPlayer({ video, showDetectionBox = false, seekToSec }: VideoPlayerProps) {
+export function VideoPlayer({ video, showDetectionBox: _showDetectionBox = false, seekToSec }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -21,9 +21,9 @@ export function VideoPlayer({ video, showDetectionBox = false, seekToSec }: Vide
   const [muted, setMuted] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  const hasCritical = video.violations.some((v) => v.severity === 'critical');
-  const primaryViolation = video.violations[0];
   const isProcessing = video.status === 'processing' || video.status === 'uploaded';
+  const verdictSeverity =
+    video.verdict === 'violation' ? 'critical' : video.verdict === 'warning' ? 'warning' : 'safe';
   const hasStream = Boolean(video.videoUrl) && !isProcessing;
 
   useEffect(() => {
@@ -137,40 +137,6 @@ export function VideoPlayer({ video, showDetectionBox = false, seekToSec }: Vide
         </Box>
       )}
 
-      {showDetectionBox && primaryViolation && hasStream && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '38%',
-            left: '40%',
-            width: '18%',
-            height: '24%',
-            border: `1.5px solid ${colors.tertiary}cc`,
-            borderRadius: 1,
-            pointerEvents: 'none',
-            boxShadow: `0 0 12px ${colors.tertiaryContainer}44`,
-          }}
-        >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: -22,
-              left: 0,
-              px: 0.75,
-              py: 0.2,
-              borderRadius: 0.5,
-              bgcolor: 'rgba(205, 0, 60, 0.92)',
-              color: '#fff',
-              fontSize: 10,
-              fontWeight: 700,
-              fontFamily: 'Manrope',
-            }}
-          >
-            AI {primaryViolation.confidenceScore}%
-          </Box>
-        </Box>
-      )}
-
       <Box
         sx={{
           position: 'absolute',
@@ -186,10 +152,8 @@ export function VideoPlayer({ video, showDetectionBox = false, seekToSec }: Vide
       >
         {isProcessing ? (
           <StatusBadge severity="info" label="Đang phân tích" />
-        ) : hasCritical ? (
-          <StatusBadge severity="critical" label="Vi phạm nghiêm trọng" />
         ) : (
-          <StatusBadge severity="safe" label={video.verdictLabel ?? 'An toàn'} />
+          <StatusBadge severity={verdictSeverity} label={video.verdictLabel} />
         )}
       </Box>
 

@@ -59,7 +59,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (!skipAuth) {
     const token = getAccessToken();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
   }
 
   const res = await fetch(`${API_BASE_URL}${path}`, { ...rest, headers });
@@ -67,10 +69,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (res.status === 401 && !skipAuth && !_retried) {
     const refreshed = await queueRefresh();
     if (refreshed) {
+      // Retry the request with the new token
       return apiRequest<T>(path, { ...options, _retried: true });
     }
+    // If refresh fails, dispatch session expired event
     clearTokens();
     window.dispatchEvent(new Event('auth:session-expired'));
+    // Throw an error to prevent further processing
+    throw new ApiError(401, 'session-expired', 'Your session has expired. Please log in again.');
   }
 
   if (!res.ok) {
@@ -83,7 +89,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw ApiError.fromBody(res.status, body);
   }
 
-  if (res.status === 204) return {} as T;
+  if (res.status === 204) {
+    return {} as T;
+  }
   return parseJson<T>(res);
 }
 

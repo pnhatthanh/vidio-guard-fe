@@ -42,6 +42,7 @@ export interface Video {
   videoUrl?: string;
   transcript?: string;
   verdictLabel?: string;
+  verdict?: 'safe' | 'warning' | 'violation';
   progressPercent?: number;
   stage?: string;
   violationCount?: number;

@@ -42,7 +42,7 @@ type VerdictTheme = {
 };
 
 function getVerdictTheme(video: Video): VerdictTheme {
-  const raw = video.verdictLabel ?? (video.violated ? 'violation' : 'safe');
+  const raw = video.verdict ?? (video.violated ? 'violation' : 'safe');
   switch (raw) {
     case 'safe':
       return {
@@ -61,8 +61,6 @@ function getVerdictTheme(video: Video): VerdictTheme {
         icon: <WarningAmber sx={{ fontSize: 13 }} />,
       };
     case 'violation':
-    case 'violence':
-    case 'nsfw':
     default:
       return {
         label: 'Vi phạm',

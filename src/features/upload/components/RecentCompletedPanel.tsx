@@ -10,19 +10,19 @@ type RecentCompletedPanelProps = {
   videos: Video[];
 };
 
-function scoreTheme(score: number, violated: boolean) {
-  if (violated || score < 70) {
+function scoreTheme(score: number, verdict?: Video['verdict']) {
+  if (verdict === 'violation' || score < 50) {
     return { color: colors.tertiary, ring: `${colors.tertiaryContainer}55`, bg: `${colors.tertiaryContainer}18` };
   }
-  if (score >= 80) {
-    return { color: '#4ade80', ring: 'rgba(74, 222, 128, 0.4)', bg: 'rgba(74, 222, 128, 0.1)' };
+  if (verdict === 'warning' || score < 80) {
+    return { color: '#e8a838', ring: 'rgba(232, 168, 56, 0.35)', bg: 'rgba(232, 168, 56, 0.1)' };
   }
-  return { color: '#e8a838', ring: 'rgba(232, 168, 56, 0.35)', bg: 'rgba(232, 168, 56, 0.1)' };
+  return { color: '#4ade80', ring: 'rgba(74, 222, 128, 0.4)', bg: 'rgba(74, 222, 128, 0.1)' };
 }
 
 function RecentCompletedRow({ video, onOpen }: { video: Video; onOpen: () => void }) {
-  const violated = video.violated ?? (video.violationCount ?? 0) > 0;
-  const theme = scoreTheme(video.safetyScore, violated);
+  const verdict = video.verdict ?? (video.violated ? 'violation' : 'safe');
+  const theme = scoreTheme(video.safetyScore, verdict);
   const timeLabel = formatProcessingWindow(video.uploadedAtIso, video.processedAtIso);
 
   return (
@@ -38,7 +38,13 @@ function RecentCompletedRow({ video, onOpen }: { video: Video; onOpen: () => voi
         cursor: 'pointer',
         bgcolor: colors.surfaceContainer,
         border: `1px solid ${colors.outlineVariant}22`,
-        borderLeft: `3px solid ${violated ? colors.tertiaryContainer : 'transparent'}`,
+        borderLeft: `3px solid ${
+          verdict === 'violation'
+            ? colors.tertiaryContainer
+            : verdict === 'warning'
+              ? '#e8a838'
+              : 'transparent'
+        }`,
         transition: 'background-color 0.2s, border-color 0.2s',
         '&:hover': {
           bgcolor: colors.surfaceContainerHigh,

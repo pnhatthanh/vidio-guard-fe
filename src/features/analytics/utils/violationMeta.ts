@@ -33,9 +33,14 @@ export function getCategoryScores(violations: Violation[]): Record<ViolationType
   return scores;
 }
 
-export function getSafetyStatusLabel(score: number, hasViolations: boolean): string {
-  if (!hasViolations) return 'Không phát hiện vấn đề nghiêm trọng';
-  if (score < 40) return 'Phát hiện vi phạm nghiêm trọng';
+export function getSafetyStatusLabel(
+  score: number,
+  hasViolations: boolean,
+  verdict?: 'safe' | 'warning' | 'violation',
+): string {
+  if (verdict === 'safe' || !hasViolations) return 'Không phát hiện vấn đề nghiêm trọng';
+  if (verdict === 'warning') return 'Cần xem xét thủ công';
+  if (verdict === 'violation' || score < 40) return 'Phát hiện vi phạm nghiêm trọng';
   if (score < 70) return 'Cần xem xét thủ công';
   return 'Một số cảnh báo nhẹ';
 }

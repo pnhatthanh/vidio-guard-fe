@@ -34,7 +34,7 @@ export function UploadIntroSection() {
 
         <Box className="flex flex-wrap gap-4 mt-4">
           {[
-            { value: '99.8%', label: 'Độ chính xác' },
+            { value: '>95%', label: 'Độ chính xác' },
             { value: '3 loại', label: 'Phát hiện AI' },
             { value: '< 2 phút', label: 'TB / video 1080p' },
           ].map((stat) => (

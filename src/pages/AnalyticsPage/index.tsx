@@ -166,6 +166,7 @@ export default function AnalyticsPage() {
             <SafetyOverview
               safetyScore={video.safetyScore}
               verdictLabel={video.verdictLabel}
+              verdict={video.verdict}
               hasViolations={hasViolations}
             />
 
@@ -259,74 +260,6 @@ export default function AnalyticsPage() {
                 Xóa video
               </Button>
             </Box>
-
-            {hasViolations && !isProcessing && (
-              <Box
-                sx={{
-                  p: 2.5,
-                  borderRadius: 2.5,
-                  bgcolor: colors.surfaceContainerLow,
-                  border: `1px solid ${colors.outlineVariant}22`,
-                }}
-              >
-                <Typography
-                  variant="overline"
-                  sx={{ color: colors.onSurfaceVariant, fontWeight: 700, display: 'block', mb: 2 }}
-                >
-                  Hành động kiểm duyệt
-                </Typography>
-
-                <Button
-                  variant="contained"
-                  fullWidth
-                  startIcon={<CheckCircle />}
-                  sx={{
-                    mb: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    py: 1.25,
-                    bgcolor: colors.primaryContainer,
-                    '&:hover': { bgcolor: colors.inversePrimary },
-                  }}
-                >
-                  Duyệt video
-                </Button>
-
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  startIcon={<Block />}
-                  sx={{
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    py: 1.25,
-                    borderColor: `${colors.tertiaryContainer}66`,
-                    color: colors.tertiary,
-                    '&:hover': {
-                      borderColor: colors.tertiaryContainer,
-                      bgcolor: `${colors.errorContainer}18`,
-                    },
-                  }}
-                >
-                  Từ chối & gỡ nội dung
-                </Button>
-
-                <Divider sx={{ my: 2, opacity: 0.15 }} />
-
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: colors.onSurfaceVariant,
-                    display: 'block',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    '&:hover': { color: colors.primary },
-                  }}
-                >
-                  Chuyển lên admin cấp cao
-                </Typography>
-              </Box>
-            )}
           </Box>
         </Box>
       </Box>

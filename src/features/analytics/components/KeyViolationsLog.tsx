@@ -10,7 +10,14 @@ type KeyViolationsLogProps = {
 };
 
 export function KeyViolationsLog({ violations, isProcessing, onSeek }: KeyViolationsLogProps) {
-  const sorted = [...violations].sort((a, b) => b.confidenceScore - a.confidenceScore);
+  const sorted = [...violations].sort((a, b) => {
+    const aTime = a.timestamp ?? Number.POSITIVE_INFINITY;
+    const bTime = b.timestamp ?? Number.POSITIVE_INFINITY;
+
+    if (aTime !== bTime) return aTime - bTime;
+
+    return b.confidenceScore - a.confidenceScore;
+  });
 
   return (
     <Box
