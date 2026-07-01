@@ -50,7 +50,7 @@ export function SafetyOverview({ safetyScore, verdictLabel, verdict, hasViolatio
           lineHeight: 1,
         }}
       >
-        {safetyScore}%
+        {safetyScore}
       </Typography>
 
       <Typography variant="body2" sx={{ color: colors.onSurfaceVariant, fontWeight: 500, mb: 1 }}>

@@ -127,7 +127,7 @@ export function UploadSessionPanel({
           </Box>
 
           <Box className="flex gap-2 shrink-0">
-            <Button
+            {/* <Button
               variant="outlined"
               size="small"
               startIcon={<Add />}
@@ -135,7 +135,7 @@ export function UploadSessionPanel({
               sx={{ borderColor: colors.outlineVariant, color: colors.onSurface, textTransform: 'none' }}
             >
               Thêm video
-            </Button>
+            </Button> */}
             <Button
               variant="contained"
               size="small"
